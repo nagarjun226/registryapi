@@ -1,4 +1,4 @@
-# Deivce Regitry Service
+# Deivce Registry Service
 
 ## Usage
 
@@ -90,3 +90,28 @@ Henceforth, we will only show the value of the `data` field
 **Response**
 - `404 Not Found` If the device does not exist
 - `204 No Content` on success
+
+### Search for a device
+
+**Definition**
+
+`GET /util/search`
+```json
+{
+    "device_id": "" `string`
+    "controller_gateway": "" `string`
+}
+```
+Any one input should be provided
+
+**Response**
+- `404 Not found` on Device not found
+- `200 OK` on Success
+```json
+{
+    "device_id": 12345, `string`
+    "device_name": "Floor Lamp", `string`
+    "device_type": "switch", `string`
+    "controller_gateway": "192.1.68.0.3" `string`
+}
+```

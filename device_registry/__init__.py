@@ -47,7 +47,7 @@ def index():
         # Covert to HTML
         return markdown.markdown(content)
 
-# Using flask REstful to write APIs. 
+# Using flask REstful to write APIs.
 # Create a class for each endpoint
 # Create a function for each method
 
@@ -61,7 +61,7 @@ class DeviceList(Resource):
 
         for key in keys:
             devices.append(shelf[key])
-        
+
         return {'message': 'Success', 'data': devices}, 200
 
     def post(self):
@@ -72,7 +72,7 @@ class DeviceList(Resource):
         parser.add_argument('device_name', required=True)
         parser.add_argument('device_type', required=False)
         parser.add_argument('controller_gateway', required=True)
-        
+
         # Parse arguments into an object
         args = parser.parse_args()
 
@@ -80,7 +80,7 @@ class DeviceList(Resource):
         if args['device_id'] is None:
             date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
             args['device_id'] = str(hash(args['device_name']+date_time))
-        
+
         shelf = get_db()
         shelf[args['device_id']] = args
 
@@ -93,7 +93,7 @@ class Device(Resource):
         # if key does not exist in the store
         if not (device_id in shelf):
             return {'message': 'Device not found', 'data': {}}, 404
-        
+
         return {'message': 'Device found', 'data': shelf[device_id]}, 200
 
     def delete(self, device_id):
@@ -102,11 +102,38 @@ class Device(Resource):
         # if key does not exist in the store
         if not (device_id in shelf):
             return {'message': 'Device not found', 'data': {}}, 404
-        
+
         del shelf[device_id]
 
         return '', 204
 
+class SearchUtil(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+
+        # Sanity check for arguments
+        parser.add_argument('device_id', required=False)
+        parser.add_argument('controller_gateway', required=True)
+
+        # Parse arguments into an object
+        args = parser.parse_args()
+
+        shelf = get_db()
+        keys = list(shelf.keys())
+
+        req_device = []
+
+        for key in keys:
+            if shelf[key]["controller_gateway"]==args["controller_gateway"]:
+                req_device.append(shelf[key])
+                break
+
+        if len(req_device) != 1:
+            return {'message': 'No device matched search', 'data': {}}, 404
+
+        return {'message': 'Device Found', 'data':req_device[0]}, 200
+
 # Adding end points
-api.add_resource(DeviceList, '/devices') 
-api.add_resource(Device, '/devices/<string:device_id>') 
+api.add_resource(DeviceList, '/devices')
+api.add_resource(Device, '/devices/<string:device_id>')
+api.add_resource(SearchUtil, '/util/search')
